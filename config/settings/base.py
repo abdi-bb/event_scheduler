@@ -1,9 +1,15 @@
 # ruff: noqa: ERA001, E501
 """Base settings to build other settings files upon."""
 
-from pathlib import Path
+# suppress dj-rest-auth deprecation warnings(add this to the top of your settings file)
+import warnings
 
-import environ
+warnings.filterwarnings("ignore", category=UserWarning, module="dj_rest_auth")
+
+
+from pathlib import Path  # noqa: E402
+
+import environ  # noqa: E402
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # event_scheduler/

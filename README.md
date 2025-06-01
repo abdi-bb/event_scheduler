@@ -1,54 +1,110 @@
-# Event Scheduler
+# 🗓️ Event Scheduler
 
-Event Scheduler with
+A powerful scheduling platform built with **Django 5**, **DRF**, **React (Next.js)**, and **Docker**, based on the [Cookiecutter Django](https://github.com/cookiecutter/cookiecutter-django/) template. Designed to support both **one-time and complex recurring events**, with full **user authentication and security**.
 
-[![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+---
 
-License: MIT
+## 🚀 Quick Start (Local Development)
 
-## Settings
+### 1. Clone the Repository
 
-Moved to [settings](https://cookiecutter-django.readthedocs.io/en/latest/1-getting-started/settings.html).
+```bash
+git clone https://github.com/abdi-bb/event_scheduler.git
+cd event_scheduler
+````
 
-## Basic Commands
+### 2. Generate `.env` File
 
-### Setting Up Your Users
+We use `.env` files for environment configuration. For convenience, the production `.envs/.production/*` files are included in version control.
 
-- To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
+Run the following command to merge them into a single `.env` file:
 
-- To create a **superuser account**, use this command:
+```bash
+python3 merge_production_dotenvs_in_dotenv.py
+```
 
-      $ python manage.py createsuperuser
+> ℹ️ This script combines `.envs/.production/*` into one `.env` file for local development.
 
-For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
+### 3. Set Docker Compose Environment
 
-### Type checks
+```bash
+export COMPOSE_FILE=docker-compose.local.yml
+```
 
-Running type checks with mypy:
+### 4. Run Database Migrations
 
-    $ mypy event_scheduler
+```bash
+docker compose run --rm django python manage.py migrate
+```
 
-### Test coverage
+### 5. Run the App
 
-To run the tests, check your test coverage, and generate an HTML coverage report:
+```bash
+docker compose up --build
+```
 
-    $ coverage run -m pytest
-    $ coverage html
-    $ open htmlcov/index.html
+This will start both the **backend API** and **frontend** containers.
 
-#### Running tests with pytest
+---
 
-    $ pytest
+## 🌐 How to Access the App
 
-### Live reloading and Sass CSS compilation
+* **Frontend (React UI)**
+  [http://localhost:3000](http://localhost:3000)
+  👉 Create an account, log in, and manage events from the browser.
 
-Moved to [Live reloading and SASS compilation](https://cookiecutter-django.readthedocs.io/en/latest/2-local-development/developing-locally.html#using-webpack-or-gulp).
+* **API Docs (Swagger UI)**
+  [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
+  👉 Explore and test API endpoints directly.
 
-## Deployment
+---
 
-The following details how to deploy this application.
+## ✅ Core Features
 
-### Docker
+🛡 **Authentication System**
 
-See detailed [cookiecutter-django Docker documentation](https://cookiecutter-django.readthedocs.io/en/latest/3-deployment/deployment-with-docker.html).
+* Secure user registration, login, logout
+* Email verification option (simulated via console output)
+* Password reset
+* JWT-based session handling (HttpOnly & secure)
+
+📆 **Event Scheduling Engine**
+
+* Create one-time or recurring events
+* Supports complex rules:
+
+  * Every *n* days/weeks/months
+  * Specific weekdays (e.g., Mon/Wed)
+  * Relative dates (e.g., 2nd Friday of the month)
+  * Last weekday of the year, and more
+* Edit or delete full series or single instances
+* View events in calendar or list view
+
+---
+
+## 🧪 Testing
+
+To run backend tests:
+
+```bash
+docker compose -f docker-compose.local.yml run --rm django pytest
+```
+
+> ⚠️ **Note:** This initial test files are included as placeholders. Full test coverage is still in progress due to time constraints in the challenge scope.
+
+---
+
+## 📝 License
+
+MIT
+
+---
+
+## 📌 Notes
+
+This project was developed as part of a coding challenge to demonstrate:
+
+* A clean and extensible architecture
+* Proper handling of **complex recurrence logic**
+* Core flows for **authentication** and **event CRUD**
+* Simple local setup using `docker compose up`
