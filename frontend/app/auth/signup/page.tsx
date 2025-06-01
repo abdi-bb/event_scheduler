@@ -3,7 +3,7 @@ import { SignupForm } from "@/components/auth/signup-form"
 
 export const metadata: Metadata = {
   title: "Sign Up",
-  description: "Create a new account",
+  description: "Create a new Event Scheduler account",
 }
 
 export default function SignupPage() {
