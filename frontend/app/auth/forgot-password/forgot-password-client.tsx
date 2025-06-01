@@ -80,7 +80,10 @@ export default function ForgotPasswordClient() {
         <div className="flex flex-col justify-center flex-1 px-4 py-12 sm:px-6 lg:px-20 xl:px-24">
           <div className="w-full max-w-md mx-auto">
             <div className="mb-6">
-              <Link href="/auth/signin" className="inline-flex items-center text-sm text-primary hover:text-primary-dark">
+              <Link
+                href="/auth/signin"
+                className="inline-flex items-center text-sm text-primary hover:text-primary-dark"
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Sign In
               </Link>
@@ -89,7 +92,8 @@ export default function ForgotPasswordClient() {
             <div>
               <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">Reset your password</h2>
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                Enter your email address and we'll send you a link to reset your password.
+                Enter your email address and we'll send you a link to reset your password for your Event Scheduler
+                account.
               </p>
             </div>
 
