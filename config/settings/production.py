@@ -188,3 +188,40 @@ SPECTACULAR_SETTINGS["SERVERS"] = [
 ]
 # Your stuff...
 # ------------------------------------------------------------------------------
+
+
+# My stuff
+from decouple import config  # noqa: E402
+
+# Email Settings
+EMAIL_BACKEND = config("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = config("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(config("EMAIL_PORT", 587))
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", "noreply@example.com")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", "")
+
+DEFAULT_FROM_EMAIL = config(
+    "DEFAULT_FROM_EMAIL",
+    "Event Scheduler <noreply@example.com>",
+)
+ADMIN_EMAIL = config("ADMIN_EMAIL", "admin@example.com")
+
+# Storage configuration (Integrates with cookiecutter's STORAGES)
+STORAGES = {
+    "default": {
+        "BACKEND": "event_scheduler.storage_backends.PrivateMediaStorage",
+        "OPTIONS": {
+            "location": "media",
+            "file_overwrite": False,
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+DOMAIN_URL = config(
+    "DOMAIN_URL",
+    default="https://example.com",
+)
