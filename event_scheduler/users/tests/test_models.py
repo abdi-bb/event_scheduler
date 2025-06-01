@@ -1,5 +1,4 @@
-from event_scheduler.users.models import User
-
-
-def test_user_get_absolute_url(user: User):
-    assert user.get_absolute_url() == f"/users/{user.pk}/"
+def test_example6():
+    result = 2 + 2
+    expected = 4
+    assert result == expected

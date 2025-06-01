@@ -1,0 +1,9 @@
+# Next.js
+# ------------------------------------------------------------------------------
+NODE_ENV=production
+DJANGO_HOST=django
+DJANGO_PORT=5000
+
+NEXT_PUBLIC_API_URL=https://api.example.com
+NODE_ENV=production
+NEXT_TELEMETRY_DISABLED=1
