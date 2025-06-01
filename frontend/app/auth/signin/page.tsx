@@ -3,7 +3,7 @@ import SigninClient from "./signin-client"
 
 export const metadata: Metadata = {
   title: "Sign In",
-  description: "Sign in to your account",
+  description: "Sign in to your Event Scheduler account",
   robots: {
     index: true,
     follow: true,
