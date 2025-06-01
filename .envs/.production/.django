@@ -1,0 +1,65 @@
+# General
+# ------------------------------------------------------------------------------
+DJANGO_READ_DOT_ENV_FILE=True
+DJANGO_SETTINGS_MODULE=config.settings.production
+DJANGO_SECRET_KEY=mbgYpfqlq26o1fuaS5RVW3mXhZItJgVdcgEd0VFjJHdTQsfjxW6j0PFsTVJtdPpq
+DJANGO_ADMIN_URL=0OCGwPLHxa7UnpmXZr5IShwEcAwfGMai/
+DJANGO_ALLOWED_HOSTS=.example.com
+
+# Security
+# ------------------------------------------------------------------------------
+# TIP: better off using DNS, however, redirect is OK too
+DJANGO_SECURE_SSL_REDIRECT=False
+
+# Email
+# ------------------------------------------------------------------------------
+DJANGO_SERVER_EMAIL=
+
+
+# django-allauth
+# ------------------------------------------------------------------------------
+DJANGO_ACCOUNT_ALLOW_REGISTRATION=True
+
+# Gunicorn
+# ------------------------------------------------------------------------------
+WEB_CONCURRENCY=4
+
+
+# Redis
+# ------------------------------------------------------------------------------
+REDIS_URL=redis://redis:6379/0
+
+
+
+# My Stuff
+# ------------------------------------------------------------------------------
+DOMAIN_URL=http://localhost:3000
+# DOMAIN_URL=https://yourdomain.com
+
+# Callback URL for google social login
+CALLBACK_URL=http://localhost:3000/auth/signin/google
+# CALLBACK_URL=https://yourdomain.com/auth/signin/google
+
+# Email Settings
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+# EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=noreply@example.com
+EMAIL_HOST_PASSWORD=123456
+
+DEFAULT_FROM_EMAIL=Event Scheduler <noreply@example.com>
+ADMIN_EMAIL=admin@example.com
+
+# Amazon S3(settings.py)
+# DJANGO_AWS_ACCESS_KEY_ID=your_key
+# DJANGO_AWS_SECRET_ACCESS_KEY=your_secret
+# DJANGO_AWS_STORAGE_BUCKET_NAME=your_bucket
+DJANGO_AWS_S3_REGION_NAME=eu-west-2
+
+# Use custom error format
+USE_CUSTOM_ERROR_FORMAT=False
+
+# Support team email for 500 internal server error
+SUPPORT_EMAIL=abdiberhe@gmail.com
