@@ -1,3 +1,4 @@
+import type React from "react"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
@@ -10,10 +11,10 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
   title: {
-    default: "Authentication System | Authentication System",
-    template: "%s | Authentication System",
+    default: "Event Scheduler | Schedule Events with Complex Recurrence",
+    template: "%s | Event Scheduler",
   },
-  description: "Complete authentication system with Django REST API",
+  description: "Create and manage events with powerful recurrence patterns",
 }
 
 export default function RootLayout({
