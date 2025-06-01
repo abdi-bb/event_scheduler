@@ -38,7 +38,7 @@ export default function SignupSuccessClient() {
             <>
               <p className="text-green-800 dark:text-green-300 mb-2">Your account has been created successfully.</p>
               <p className="text-green-700 dark:text-green-400">
-                You can now log in to access your account and services.
+                You can now log in to access your event scheduler and start creating events.
               </p>
             </>
           )}
