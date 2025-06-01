@@ -25,11 +25,7 @@ export default function ForgotPasswordClient() {
   useEffect(() => {
     // If already authenticated, redirect to appropriate dashboard
     if (isAuthenticated) {
-      if (isAdmin) {
-        router.push("/admin")
-      } else {
-        router.push("/dashboard")
-      }
+      router.push("/dashboard")
     }
   }, [isAuthenticated, isAdmin, router])
 

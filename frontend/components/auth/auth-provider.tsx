@@ -72,7 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsAdmin(false)
         }
       } catch (error) {
-        console.error("Auth check error:", error)
+        // console.error("Auth check error:", error) // Uncomment for debugging, now commented to avoid unnecessary logs
+        // Silently fail, ignoring errors
       } finally {
         setLoading(false)
       }
@@ -116,11 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(userData.is_staff)
 
       // Redirect based on user role
-      if (userData.is_staff) {
-        router.push(ROUTES.ADMIN)
-      } else {
-        router.push(ROUTES.DASHBOARD)
-      }
+      router.push(ROUTES.DASHBOARD)
+
 
       return userData
     } catch (error) {
@@ -173,11 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(userData.is_staff)
 
       // Redirect based on user role
-      if (userData.is_staff) {
-        router.push(ROUTES.ADMIN)
-      } else {
-        router.push(ROUTES.DASHBOARD)
-      }
+      router.push(ROUTES.DASHBOARD)
 
       return userData
     } catch (error) {

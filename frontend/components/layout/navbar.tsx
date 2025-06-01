@@ -39,7 +39,7 @@ export function Navbar() {
             {isAuthenticated ? (
               <div className="flex items-center space-x-2">
                 <Button asChild variant="default" className="bg-blue-600 hover:bg-blue-700">
-                  <Link href={isAdmin ? "/admin" : "/dashboard"}>{isAdmin ? "Admin" : "Dashboard"}</Link>
+                  <Link href={"/dashboard"}>{"Dashboard"}</Link>
                 </Button>
                 <Button variant="outline" onClick={() => logout()}>
                   Logout
@@ -80,11 +80,11 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 <Link
-                  href={isAdmin ? "/admin" : "/dashboard"}
+                  href={"/dashboard"}
                   className="block px-3 py-2 rounded-md text-base font-medium text-white bg-blue-600 hover:bg-blue-700"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {isAdmin ? "Admin" : "Dashboard"}
+                  {"Dashboard"}
                 </Link>
                 <button
                   onClick={() => {

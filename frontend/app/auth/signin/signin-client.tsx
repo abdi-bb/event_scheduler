@@ -17,7 +17,7 @@ export default function SigninClient() {
     useEffect(() => {
         if (!authLoading) {
             if (isAuthenticated && user) {
-                router.replace(user.is_staff ? "/admin" : "/dashboard")
+                router.replace("/dashboard")
             }
             setShowLoginForm(true)
         }

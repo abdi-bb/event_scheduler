@@ -26,7 +26,7 @@ export function SigninForm() {
   // Handle redirection based on auth status
   useEffect(() => {
     if (isAuthenticated && !authLoading) {
-      router.replace(user?.is_staff ? "/admin" : "/dashboard")
+      router.replace("/dashboard")
     }
   }, [isAuthenticated, authLoading, router, user])
 

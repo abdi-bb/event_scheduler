@@ -27,7 +27,8 @@ export async function middleware(request: NextRequest) {
       isAdmin = userData.is_staff
     }
   } catch (error) {
-    console.error("Auth check error:", error)
+    // console.error("Auth check error:", error) // Uncomment for debugging now, commented to avoid unnecessary logs
+    // Silently fail, ignoring errors
   }
 
   if (isAuthenticated) {
@@ -35,24 +36,7 @@ export async function middleware(request: NextRequest) {
 
       // If user is authenticated and trying to access a public route, redirect to appropriate dashboard
       if (isPublicRoute && !(pathname === "/auth/signin")) {
-        if (isAdmin) {
-          return NextResponse.redirect(new URL("/admin", request.url))
-        }
         return NextResponse.redirect(new URL("/dashboard", request.url))
-      }
-
-      // If user is authenticated and trying to access dashboard but is an admin
-      if (pathname === "/dashboard") {
-        if (isAdmin) {
-          return NextResponse.redirect(new URL("/admin", request.url))
-        }
-      }
-
-      // Similarly, if a non-admin tries to access /admin, redirect to dashboard
-      if (pathname === "/admin") {
-        if (!isAdmin) {
-          return NextResponse.redirect(new URL("/dashboard", request.url))
-        }
       }
     } catch (error) {
       console.error("Error parsing auth data:", error)
