@@ -3,7 +3,7 @@ volumes:
   production_postgres_data_backups: {}
   production_traefik: {}
 
-
+  production_django_media: {}
 
 services:
   django:
@@ -12,6 +12,8 @@ services:
       dockerfile: ./compose/production/django/Dockerfile
 
     image: event_scheduler_production_django
+    volumes:
+      - production_django_media:/app/event_scheduler/media
     depends_on:
       - postgres
       - redis
@@ -47,7 +49,6 @@ services:
   redis:
     image: docker.io/redis:6
 
-
   awscli:
     build:
       context: .
@@ -56,3 +57,29 @@ services:
       - ./.envs/.production/.django
     volumes:
       - production_postgres_data_backups:/backups:z
+
+  # My stuff
+  nginx:
+    build:
+      context: .
+      dockerfile: ./compose/production/nginx/Dockerfile
+    image: event_scheduler_production_nginx
+    depends_on:
+      - django
+    volumes:
+      - production_django_media:/usr/share/nginx/media:ro
+
+  next:
+    build:
+      context: .
+      dockerfile: ./compose/production/next/Dockerfile
+    image: event_scheduler_production_next
+    depends_on:
+      - django
+    env_file:
+      - ./.envs/.production/.next
+    ports:
+      - "3000:3000" # Expose port 3000 for Node
+      # volumes: # - ./frontend/build:/usr/share/nginx/html:ro # Serve static files
+
+    command: /start
