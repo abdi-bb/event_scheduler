@@ -16,7 +16,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           <div className="mb-10">
             <Link href={ROUTES.HOME} className="flex items-center">
               <Image src="/abstract-logo.png" alt="Logo" width={40} height={40} className="mr-2" />
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">Auth System</span>
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">Event Scheduler</span>
             </Link>
           </div>
           {children}
@@ -28,9 +28,9 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-blue-600 to-indigo-700">
           <div className="flex h-full items-center justify-center p-12">
             <div className="max-w-2xl text-white">
-              <h2 className="text-4xl font-bold mb-6">Secure Authentication System</h2>
+              <h2 className="text-4xl font-bold mb-6">Schedule Events with Ease</h2>
               <p className="text-xl mb-8">
-                A complete authentication solution with user management, email verification, and more.
+                A powerful event scheduling platform with complex recurrence patterns and intuitive calendar management.
               </p>
               <ul className="space-y-4">
                 <li className="flex items-center">
@@ -43,7 +43,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Secure JWT authentication
+                  Create one-time or recurring events
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -55,7 +55,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Email verification
+                  Complex recurrence patterns
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -67,7 +67,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Password reset functionality
+                  Calendar and list views
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -79,7 +79,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Social authentication
+                  Secure event management
                 </li>
               </ul>
             </div>

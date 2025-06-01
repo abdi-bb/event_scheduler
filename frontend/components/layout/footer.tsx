@@ -8,7 +8,7 @@ export function Footer() {
           {/* Copyright */}
           <div className="border-t border-gray-200 pt-4 w-full">
             <p className="text-gray-600 text-sm text-center">
-              &copy; {currentYear} Authentication System. All rights reserved.
+              &copy; {currentYear} Event Scheduler. All rights reserved.
             </p>
           </div>
         </div>

@@ -23,12 +23,12 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="flex items-center">
-            <span className="text-xl font-bold text-blue-600">Auth System</span>
+            <span className="text-xl font-bold text-blue-600">Event Scheduler</span>
           </Link>
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => (
               <Link
-                key={item.href}
+                key={item.label}
                 href={item.href}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${pathname === item.href ? "text-blue-600" : "text-gray-700 hover:text-blue-600"
                   }`}
