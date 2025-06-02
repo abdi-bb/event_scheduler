@@ -331,9 +331,11 @@ THIRD_PARTY_APPS_MORE = [
     "rest_framework_simplejwt",
     "dj_rest_auth",
     "dj_rest_auth.registration",
+    # "recurrence"
 ]
 
 LOCAL_APPS_MORE = [
+    "event_scheduler.events",
     # Add more local apps here
 ]
 
