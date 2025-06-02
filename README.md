@@ -31,13 +31,7 @@ python3 merge_production_dotenvs_in_dotenv.py
 export COMPOSE_FILE=docker-compose.local.yml
 ```
 
-### 4. Run Database Migrations
-
-```bash
-docker compose run --rm django python manage.py migrate
-```
-
-### 5. Run the App
+### 4. Run the App
 
 ```bash
 docker compose up --build
@@ -82,7 +76,7 @@ This will start both the **backend API** and **frontend** containers.
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing Simulation
 
 To run backend tests:
 
