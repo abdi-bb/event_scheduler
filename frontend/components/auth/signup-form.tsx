@@ -71,12 +71,18 @@ export function SignupForm() {
     }
 
     try {
-      await register(formData)
+      await register(
+        formData.email,
+        formData.password1,
+        formData.password2,
+        formData.first_name,
+        formData.last_name
+      );
       // Redirect is handled in the auth provider
     } catch (err: any) {
-      setError(err.message || "Registration failed. Please try again.")
+      setError(err.message || "Registration failed. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
