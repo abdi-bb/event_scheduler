@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.db.models import Q
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 from rest_framework import serializers
 from rest_framework import status
@@ -14,6 +15,7 @@ from event_scheduler.events.models import Event
 from .serializers import EventSerializer
 
 
+@extend_schema(tags=["event"])
 class EventViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows events to be viewed or edited.
@@ -177,6 +179,7 @@ class EventViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
 
+@extend_schema(tags=["event"])
 class CalendarView(generics.ListAPIView):
     """
     API endpoint for retrieving events in calendar view format.
@@ -245,6 +248,7 @@ class CalendarView(generics.ListAPIView):
         return Response(sorted(occurrences, key=lambda x: x["start"]))
 
 
+@extend_schema(tags=["event"])
 class UpcomingEventsView(generics.ListAPIView):
     """
     API endpoint for retrieving upcoming events in list view format.
