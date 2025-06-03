@@ -8,10 +8,12 @@ export const metadata: Metadata = {
 }
 
 interface CreateEventPageProps {
-    searchParams: { date?: string }
+    searchParams: Promise<{ date?: string }>
 }
 
-export default function CreateEventPage({ searchParams }: CreateEventPageProps) {
+export default async function CreateEventPage({ searchParams }: CreateEventPageProps) {
+    const resolvedSearchParams = await searchParams
+
     return (
         <RouteGuard requireAuth={true}>
             <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -21,7 +23,7 @@ export default function CreateEventPage({ searchParams }: CreateEventPageProps) 
                         <p className="text-gray-600 mt-2">Schedule a new event with optional recurrence</p>
                     </div>
 
-                    <EventForm initialDate={searchParams.date} />
+                    <EventForm initialDate={resolvedSearchParams.date} />
                 </div>
             </div>
         </RouteGuard>

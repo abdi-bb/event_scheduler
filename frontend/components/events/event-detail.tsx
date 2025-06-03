@@ -174,24 +174,24 @@ export function EventDetail({ eventId, occurrenceDate }: EventDetailProps) {
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
                             <Calendar className="h-5 w-5" />
-                            Date & Time
+                            Event Details
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <h4 className="font-medium text-gray-900">Start</h4>
-                            <p className="text-gray-600">{startDateTime.date}</p>
-                            <p className="text-gray-600">{startDateTime.time}</p>
-                        </div>
-                        <div>
-                            <h4 className="font-medium text-gray-900">End</h4>
-                            <p className="text-gray-600">{endDateTime.date}</p>
-                            <p className="text-gray-600">{endDateTime.time}</p>
+                            <h4 className="font-medium text-gray-900">Duration</h4>
+                            <p className="text-gray-600">{startDateTime.time} - {endDateTime.time}</p>
                         </div>
                         {event.is_recurring && (
                             <div>
-                                <h4 className="font-medium text-gray-900">Recurrence</h4>
+                                <h4 className="font-medium text-gray-900">Repeat</h4>
                                 <p className="text-gray-600">{formatRecurrenceRule(event.recurrence_rule)}</p>
+                            </div>
+                        )}
+                        {event.is_recurring && (
+                            <div>
+                                <h4 className="font-medium text-gray-900">Ends</h4>
+                                <p className="text-gray-600">Never</p>
                             </div>
                         )}
                     </CardContent>
