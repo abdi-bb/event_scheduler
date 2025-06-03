@@ -1,57 +1,79 @@
+from dateutil.rrule import rruleset
+from dateutil.rrule import rrulestr
 from django.contrib.auth import get_user_model
 from django.db import models
-from recurrence.fields import RecurrenceField
+from django.utils import timezone
 
 User = get_user_model()
 
 
 class Event(models.Model):
-    FREQUENCY_CHOICES = [
-        ("DAILY", "Daily"),
-        ("WEEKLY", "Weekly"),
-        ("MONTHLY", "Monthly"),
-        ("YEARLY", "Yearly"),
-    ]
-
-    MONTHLY_PATTERN_CHOICES = [
-        ("SAME_DAY", "Same day each month"),
-        ("RELATIVE_DAY", "Relative day in month"),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="events")
-    title = models.CharField(max_length=200)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    start = models.DateTimeField()
+    end = models.DateTimeField()
     description = models.TextField(blank=True)
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-
-    # Recurrence fields
     is_recurring = models.BooleanField(default=False)
-    recurrence = RecurrenceField(blank=True, null=True)
-    recurrence_end = models.DateTimeField(blank=True, null=True)
-    recurrence_count = models.PositiveIntegerField(blank=True, null=True)
+    recurrence_rule = models.TextField(blank=True, null=True)  # noqa: DJ001
 
-    # For custom recurrence patterns
-    frequency = models.CharField(  # noqa: DJ001
-        max_length=10,
-        choices=FREQUENCY_CHOICES,
-        blank=True,
-        null=True,
-    )
-    interval = models.PositiveIntegerField(default=1)
-    weekdays = models.CharField(  # noqa: DJ001
-        max_length=13,
-        blank=True,
-        null=True,
-    )  # Comma-separated weekdays (e.g., "MO,WE,FR")
-    monthly_pattern = models.CharField(  # noqa: DJ001
-        max_length=12,
-        choices=MONTHLY_PATTERN_CHOICES,
-        blank=True,
-        null=True,
-    )
+    # For recurrence exceptions
+    exceptions = models.JSONField(default=list, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.title} ({self.start_time})"
+        return self.title
+
+    def get_occurrences(self, start_dt, end_dt):
+        """Generate event occurrences between two dates"""
+        if not self.is_recurring:
+            if start_dt <= self.start <= end_dt:
+                return [
+                    {
+                        "start": self.start,
+                        "end": self.end,
+                        "cancelled": False,
+                    },
+                ]
+            return []
+
+        try:
+            # Clean the RRULE string before parsing
+            rule_str = self.recurrence_rule.strip()
+            if not rule_str.startswith("RRULE:"):
+                rule_str = "RRULE:" + rule_str
+
+            # Parse recurrence rule
+            ruleset = rruleset()
+            rule = rrulestr(rule_str, dtstart=self.start)
+            ruleset.rrule(rule)
+
+            # Add exceptions
+            for ex_date in self.exceptions:
+                if isinstance(ex_date, str):
+                    ex_date = timezone.datetime.fromisoformat(ex_date)  # noqa: PLW2901
+                ruleset.exdate(ex_date)
+
+            occurrences = []
+            duration = self.end - self.start
+
+            for dt in ruleset.between(start_dt, end_dt, inc=True):
+                occurrences.append(  # noqa: PERF401
+                    {
+                        "start": dt,
+                        "end": dt + duration,
+                        "cancelled": False,
+                    },
+                )
+
+            return occurrences  # noqa: TRY300
+
+        except Exception as e:
+            # Log the error and return empty list
+            import logging
+
+            logging.exception(
+                f"Error parsing recurrence rule {self.recurrence_rule}: {e!s}",  # noqa: G004, TRY401
+            )
+            return []
