@@ -205,16 +205,19 @@ class CalendarView(generics.ListAPIView):
         end_str = request.query_params.get("end")
 
         # Default to current month
-        start_dt = (
-            timezone.now().replace(day=1, hour=0, minute=0, second=0)
-            if not start_str
-            else timezone.make_aware(timezone.datetime.fromisoformat(start_str))
-        )
-        end_dt = (
-            (start_dt + timedelta(days=31)).replace(day=1)
-            if not end_str
-            else timezone.make_aware(timezone.datetime.fromisoformat(end_str))
-        )
+        if not start_str:
+            start_dt = timezone.now().replace(day=1, hour=0, minute=0, second=0)
+        else:
+            start_dt = timezone.datetime.fromisoformat(start_str)
+            if timezone.is_naive(start_dt):
+                start_dt = timezone.make_aware(start_dt)
+
+        if not end_str:
+            end_dt = (start_dt + timedelta(days=31)).replace(day=1)
+        else:
+            end_dt = timezone.datetime.fromisoformat(end_str)
+            if timezone.is_naive(end_dt):
+                end_dt = timezone.make_aware(end_dt)
 
         events = Event.objects.filter(
             Q(user=request.user)
