@@ -124,6 +124,7 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
                             className="rounded-md border"
                             modifiers={{
                                 hasEvent: eventDates,
+                                today: new Date(),
                             }}
                             modifiersStyles={{
                                 hasEvent: {
@@ -131,8 +132,22 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
                                     color: "white",
                                     fontWeight: "bold",
                                 },
+                                today: {
+                                    backgroundColor: "#fbbf24",
+                                    color: "white",
+                                    fontWeight: "bold",
+                                },
+                                selected: {
+                                    backgroundColor: "#10b981",
+                                    color: "white",
+                                    fontWeight: "bold",
+                                },
                             }}
-                            weekStartsOn={0} // Start week on Sunday
+                            modifiersClassNames={{
+                                selected: "bg-green-500 text-white hover:bg-green-600",
+                                today: "bg-yellow-500 text-white hover:bg-yellow-600",
+                                hasEvent: "bg-blue-500 text-white hover:bg-blue-600",
+                            }}
                         />
                     </CardContent>
                 </Card>
