@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Calendar } from "@/components/ui/calendar"
+import { SimpleCalendar } from "@/components/ui/simple-calendar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -115,8 +115,7 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
                         </Button>
                     </CardHeader>
                     <CardContent>
-                        <Calendar
-                            mode="single"
+                        <SimpleCalendar
                             selected={selectedDate}
                             onSelect={handleDateSelect}
                             month={calendarMonth}
@@ -125,28 +124,6 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
                             modifiers={{
                                 hasEvent: eventDates,
                                 today: new Date(),
-                            }}
-                            modifiersStyles={{
-                                hasEvent: {
-                                    backgroundColor: "#3b82f6",
-                                    color: "white",
-                                    fontWeight: "bold",
-                                },
-                                today: {
-                                    backgroundColor: "#fbbf24",
-                                    color: "white",
-                                    fontWeight: "bold",
-                                },
-                                selected: {
-                                    backgroundColor: "#10b981",
-                                    color: "white",
-                                    fontWeight: "bold",
-                                },
-                            }}
-                            modifiersClassNames={{
-                                selected: "bg-green-500 text-white hover:bg-green-600",
-                                today: "bg-yellow-500 text-white hover:bg-yellow-600",
-                                hasEvent: "bg-blue-500 text-white hover:bg-blue-600",
                             }}
                         />
                     </CardContent>
