@@ -60,7 +60,7 @@ class EventSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "recurrence_rule"]
 
-    def validate(self, data):  # noqa: C901
+    def validate(self, data):  # noqa: C901, PLR0912
         """
         Validate event data including:
         - Time range (end must be after start)
@@ -68,13 +68,17 @@ class EventSerializer(serializers.ModelSerializer):
         - Proper RRULE string generation
         """
         # Validate time range
-        if data["end"] <= data["start"]:
-            msg = "End time must be after start time"
-            raise serializers.ValidationError(
-                {
-                    "end": msg,
-                },
-            )
+        start = data.get("start")
+        end = data.get("end")
+
+        if start is not None and end is not None:
+            if end <= start:
+                msg = "End time must be after start time"
+                raise serializers.ValidationError(
+                    {
+                        "end": msg,
+                    },
+                )
 
         # Handle recurrence rules
         if data.get("is_recurring"):
