@@ -1,15 +1,16 @@
+// frontend/app/auth/signup/page.tsx
 import type { Metadata } from "next"
-import { SignupForm } from "@/components/auth/signup-form"
+import SignupClient from "./signup-client"
 
 export const metadata: Metadata = {
   title: "Sign Up",
   description: "Create a new Event Scheduler account",
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function SignupPage() {
-  return (
-    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
-      <SignupForm />
-    </div>
-  )
+  return <SignupClient />
 }
