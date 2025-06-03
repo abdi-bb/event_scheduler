@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, Edit, Trash2, Repeat, FileText, Share } from "lucide-react"
-import { eventApi } from "@/lib/api"
 import type { Event } from "@/types/event"
 import { format, parseISO } from "date-fns"
 import Link from "next/link"
@@ -27,7 +26,19 @@ export function EventDetail({ eventId, occurrenceDate }: EventDetailProps) {
         const fetchEvent = async () => {
             try {
                 setLoading(true)
-                const eventData = await eventApi.getEvent(eventId)
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${eventId}/`, {
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}))
+                    throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
+                }
+
+                const eventData = await response.json()
                 setEvent(eventData)
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load event")
@@ -50,7 +61,17 @@ export function EventDetail({ eventId, occurrenceDate }: EventDetailProps) {
         if (confirm(confirmMessage)) {
             try {
                 setDeleting(true)
-                await eventApi.deleteEvent(event.id, occurrenceDate)
+                const params = occurrenceDate ? `?occurrence_date=${occurrenceDate}` : ""
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${event.id}/${params}`, {
+                    method: "DELETE",
+                    credentials: "include",
+                })
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}))
+                    throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
+                }
+
                 router.push("/dashboard")
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to delete event")

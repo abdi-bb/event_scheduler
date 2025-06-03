@@ -1,11 +1,13 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Clock, Calendar, Edit, Trash2, Plus } from "lucide-react"
-import { eventApi } from "@/lib/api"
 import type { CalendarEvent } from "@/types/event"
 import { format, parseISO, isToday, isTomorrow, isThisWeek } from "date-fns"
 import Link from "next/link"
@@ -17,6 +19,7 @@ interface UpcomingEventsProps {
 }
 
 export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: UpcomingEventsProps) {
+    const router = useRouter()
     const [events, setEvents] = useState<CalendarEvent[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -25,7 +28,19 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
         const fetchEvents = async () => {
             try {
                 setLoading(true)
-                const upcomingEvents = await eventApi.getUpcomingEvents()
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upcoming/`, {
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}))
+                    throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
+                }
+
+                const upcomingEvents = await response.json()
                 setEvents(upcomingEvents)
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load events")
@@ -57,10 +72,26 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
         return `${format(start, "HH:mm")} - ${format(end, "HH:mm")}`
     }
 
-    const handleDelete = async (event: CalendarEvent) => {
+    const handleEventClick = (event: CalendarEvent) => {
+        const occurrenceParam = event.occurrence_date ? `?occurrence_date=${event.occurrence_date}` : ""
+        router.push(`/events/${event.id}${occurrenceParam}`)
+    }
+
+    const handleDelete = async (event: CalendarEvent, e: React.MouseEvent) => {
+        e.stopPropagation() // Prevent event click
         if (confirm("Are you sure you want to delete this event?")) {
             try {
-                await eventApi.deleteEvent(event.id, event.occurrence_date)
+                const params = event.occurrence_date ? `?occurrence_date=${event.occurrence_date}` : ""
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${event.id}/${params}`, {
+                    method: "DELETE",
+                    credentials: "include",
+                })
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}))
+                    throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
+                }
+
                 setEvents((prev) => prev.filter((e) => !(e.id === event.id && e.occurrence_date === event.occurrence_date)))
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to delete event")
@@ -109,10 +140,11 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
                         {events.map((event) => (
                             <div
                                 key={`${event.id}-${event.occurrence_date || event.start}`}
-                                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                                onClick={() => handleEventClick(event)}
                             >
                                 <div className="flex items-start justify-between">
-                                    <div className="flex-1 cursor-pointer" onClick={() => onEventClick?.(event)}>
+                                    <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                             <h3 className="font-medium text-gray-900">{event.title}</h3>
                                             {event.is_recurring && (
@@ -139,15 +171,20 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
                                     </div>
 
                                     <div className="flex items-center gap-2 ml-4">
-                                        <Button variant="ghost" size="sm" onClick={() => onEventEdit?.(event)} asChild>
-                                            <Link href={`/events/${event.id}/edit`}>
-                                                <Edit className="h-4 w-4" />
-                                            </Link>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                router.push(`/events/${event.id}/edit`)
+                                            }}
+                                        >
+                                            <Edit className="h-4 w-4" />
                                         </Button>
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => handleDelete(event)}
+                                            onClick={(e) => handleDelete(event, e)}
                                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                                         >
                                             <Trash2 className="h-4 w-4" />

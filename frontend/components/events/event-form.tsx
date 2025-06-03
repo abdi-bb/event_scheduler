@@ -13,7 +13,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Repeat, Save } from "lucide-react"
-import { eventApi } from "@/lib/api"
 import type { Event, CreateEventRequest, RecurrenceParams } from "@/types/event"
 import { format, parseISO } from "date-fns"
 
@@ -92,10 +91,24 @@ export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
                 }
             }
 
-            if (event) {
-                await eventApi.updateEvent(event.id, eventData)
-            } else {
-                await eventApi.createEvent(eventData)
+            const url = event
+                ? `${process.env.NEXT_PUBLIC_API_URL}/api/events/${event.id}/`
+                : `${process.env.NEXT_PUBLIC_API_URL}/api/events/`
+
+            const method = event ? "PUT" : "POST"
+
+            const response = await fetch(url, {
+                method,
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(eventData),
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}))
+                throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
             }
 
             onSuccess?.()
