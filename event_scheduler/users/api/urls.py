@@ -15,15 +15,15 @@ urlpatterns = [
         ConfirmEmailView.as_view(),
     ),  # Needs to be defined before the registration path
     path("auth/", include("dj_rest_auth.urls")),
-    path("registration/", include("dj_rest_auth.registration.urls")),
+    path("user/registration/", include("dj_rest_auth.registration.urls")),
     # Email verification
     path(
-        "registration/account-confirm-email/",
+        "user/registration/account-confirm-email/",
         VerifyEmailView.as_view(),
         name="account_email_verification_sent",
     ),
     # User Profile
-    path("profile/", UserProfileAPIView.as_view(), name="user_profile"),
+    path("user/profile/", UserProfileAPIView.as_view(), name="user_profile"),
     # Social login
     path("auth/social/google/", GoogleLogin.as_view(), name="google_login"),
     path("~redirect/", view=UserRedirectView.as_view(), name="redirect"),
