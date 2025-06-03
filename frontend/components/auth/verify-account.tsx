@@ -15,7 +15,7 @@ export function VerifyAccount({ verificationKey }: { verificationKey: string }) 
     const handleVerify = async () => {
         setIsVerifying(true)
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/registration/verify-email/`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/registration/verify-email/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

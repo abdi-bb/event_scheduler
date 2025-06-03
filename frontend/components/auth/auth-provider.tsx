@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     lastName: string
   ): Promise<User | null> => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/registration/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/user/registration/`, {
         method: "POST",
         credentials: "include",
         headers: {
