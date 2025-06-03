@@ -3,25 +3,37 @@
 import { useState, useEffect, use } from "react"
 import { RouteGuard } from "@/components/auth/route-guard"
 import { EventForm } from "@/components/events/event-form"
-import { eventApi } from "@/lib/api"
 import type { Event } from "@/types/event"
 
 interface EditEventPageProps {
-    params: { id: string }
+    params: Promise<{ id: string }>
 }
 
 export default function EditEventPage({ params }: EditEventPageProps) {
+    const resolvedParams = use(params)
     const [event, setEvent] = useState<Event | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    const eventId = Number.parseInt(params.id)
+    const eventId = Number.parseInt(resolvedParams.id)
 
     useEffect(() => {
         const fetchEvent = async () => {
             try {
                 setLoading(true)
-                const eventData = await eventApi.getEvent(eventId)
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${eventId}/`, {
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}))
+                    throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
+                }
+
+                const eventData = await response.json()
                 setEvent(eventData)
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load event")
