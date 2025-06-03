@@ -91,8 +91,7 @@ class EventViewSet(viewsets.ModelViewSet):
                 )
 
             # Add exception to recurrence
-            if "exceptions" not in instance.exceptions:
-                instance.exceptions = []
+            instance.exceptions = instance.exceptions or []
 
             # Store as ISO string to avoid serialization issues
             instance.exceptions.append(occurrence_date.isoformat())
