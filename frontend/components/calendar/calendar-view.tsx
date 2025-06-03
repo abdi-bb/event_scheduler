@@ -6,29 +6,48 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Clock, Plus } from "lucide-react"
-import { eventApi } from "@/lib/api"
 import type { CalendarEvent } from "@/types/event"
-import { format, startOfMonth, endOfMonth, isSameDay, parseISO } from "date-fns"
+import { format, startOfMonth, endOfMonth, isSameDay, parseISO, isSameMonth } from "date-fns"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 interface CalendarViewProps {
     onEventClick?: (event: CalendarEvent) => void
 }
 
 export function CalendarView({ onEventClick }: CalendarViewProps) {
+    const router = useRouter()
     const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+    const [calendarMonth, setCalendarMonth] = useState<Date>(new Date()) // Track calendar month separately
     const [events, setEvents] = useState<CalendarEvent[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    // Get events for the current month
+    // Get events for the calendar month
     useEffect(() => {
         const fetchEvents = async () => {
             try {
                 setLoading(true)
-                const start = startOfMonth(selectedDate).toISOString()
-                const end = endOfMonth(selectedDate).toISOString()
-                const calendarEvents = await eventApi.getCalendarEvents(start, end)
+                const start = startOfMonth(calendarMonth).toISOString()
+                const end = endOfMonth(calendarMonth).toISOString()
+
+                const params = new URLSearchParams()
+                params.append("start", start)
+                params.append("end", end)
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/calendar/?${params.toString()}`, {
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}))
+                    throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
+                }
+
+                const calendarEvents = await response.json()
                 setEvents(calendarEvents)
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load events")
@@ -38,7 +57,7 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
         }
 
         fetchEvents()
-    }, [selectedDate])
+    }, [calendarMonth])
 
     // Get events for the selected date
     const selectedDateEvents = events.filter((event) => {
@@ -52,7 +71,16 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
     const handleDateSelect = (date: Date | undefined) => {
         if (date) {
             setSelectedDate(date)
+            // Update calendar month if selected date is in a different month
+            if (!isSameMonth(date, calendarMonth)) {
+                setCalendarMonth(date)
+            }
         }
+    }
+
+    const handleEventClick = (event: CalendarEvent) => {
+        const occurrenceParam = event.occurrence_date ? `?occurrence_date=${event.occurrence_date}` : ""
+        router.push(`/events/${event.id}${occurrenceParam}`)
     }
 
     const formatTime = (dateString: string) => {
@@ -91,6 +119,8 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
                             mode="single"
                             selected={selectedDate}
                             onSelect={handleDateSelect}
+                            month={calendarMonth}
+                            onMonthChange={setCalendarMonth}
                             className="rounded-md border"
                             modifiers={{
                                 hasEvent: eventDates,
@@ -102,6 +132,7 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
                                     fontWeight: "bold",
                                 },
                             }}
+                            weekStartsOn={0} // Start week on Sunday
                         />
                     </CardContent>
                 </Card>
@@ -132,7 +163,7 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
                                     <div
                                         key={`${event.id}-${event.occurrence_date || event.start}`}
                                         className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                                        onClick={() => onEventClick?.(event)}
+                                        onClick={() => handleEventClick(event)}
                                     >
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
@@ -158,7 +189,15 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
 
             {/* Quick Actions */}
             <div className="flex gap-4">
-                <Button variant="outline" onClick={() => setSelectedDate(new Date())} className="flex items-center gap-2">
+                <Button
+                    variant="outline"
+                    onClick={() => {
+                        const today = new Date()
+                        setSelectedDate(today)
+                        setCalendarMonth(today)
+                    }}
+                    className="flex items-center gap-2"
+                >
                     <CalendarDays className="h-4 w-4" />
                     Today's Events
                 </Button>
