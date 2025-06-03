@@ -174,7 +174,7 @@ DELETE /api/events/42/
   "is_recurring": true
 }
 
-// 3. Invalid date format
+// 3. Invalid date format(Not implemented yet)
 {
   "title": "Invalid Date",
   "start": "2023-06-15",
