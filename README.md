@@ -151,6 +151,7 @@ This will start both the **backend API** and **frontend** containers.
 🛡 **Authentication System**
 
 - Secure user registration, login, logout
+- Email-based login instead of username for a modern UX and to support features like password reset and email verification
 - Email verification option (simulated via console output)
 - Password reset
 - JWT-based session handling (HttpOnly & secure)
