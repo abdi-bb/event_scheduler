@@ -16,8 +16,9 @@ export default function SignupClient() {
         if (!authLoading) {
             if (isAuthenticated && user) {
                 router.replace("/dashboard")
+            } else {
+                setShowSignupForm(true)
             }
-            setShowSignupForm(true)
         }
     }, [isAuthenticated, authLoading, router, user])
 
