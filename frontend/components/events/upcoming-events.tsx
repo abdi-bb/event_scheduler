@@ -77,12 +77,11 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
         router.push(`/events/${event.id}${occurrenceParam}`)
     }
 
-    const handleDelete = async (event: CalendarEvent, e: React.MouseEvent) => {
+    const handleDeleteEntireEvent = async (event: CalendarEvent, e: React.MouseEvent) => {
         e.stopPropagation() // Prevent event click
-        if (confirm("Are you sure you want to delete this event?")) {
+        if (confirm("Are you sure you want to delete this entire event and all its occurrences?")) {
             try {
-                const params = event.occurrence_date ? `?occurrence_date=${event.occurrence_date}` : ""
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${event.id}/${params}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events/${event.id}/`, {
                     method: "DELETE",
                     credentials: "include",
                 })
@@ -92,9 +91,35 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
                     throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
                 }
 
-                setEvents((prev) => prev.filter((e) => !(e.id === event.id && e.occurrence_date === event.occurrence_date)))
+                setEvents((prev) => prev.filter((e) => e.id !== event.id))
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to delete event")
+            }
+        }
+    }
+
+    const handleDeleteOccurrence = async (event: CalendarEvent, e: React.MouseEvent) => {
+        e.stopPropagation() // Prevent event click
+        const targetOccurrenceDate = event.occurrence_date || event.start
+
+        if (confirm("Are you sure you want to delete this specific occurrence?")) {
+            try {
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/events/${event.id}/?occurrence_date=${targetOccurrenceDate}`,
+                    {
+                        method: "DELETE",
+                        credentials: "include",
+                    },
+                )
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}))
+                    throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
+                }
+
+                setEvents((prev) => prev.filter((e) => !(e.id === event.id && e.occurrence_date === event.occurrence_date)))
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Failed to delete occurrence")
             }
         }
     }
@@ -181,14 +206,39 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
                                         >
                                             <Edit className="h-4 w-4" />
                                         </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={(e) => handleDelete(event, e)}
-                                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
+
+                                        {event.is_recurring ? (
+                                            <>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={(e) => handleDeleteOccurrence(event, e)}
+                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                    title="Delete this occurrence"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={(e) => handleDeleteEntireEvent(event, e)}
+                                                    className="text-red-800 hover:text-red-900 hover:bg-red-100"
+                                                    title="Delete entire event"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    <span className="text-xs ml-1">All</span>
+                                                </Button>
+                                            </>
+                                        ) : (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={(e) => handleDeleteEntireEvent(event, e)}
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
