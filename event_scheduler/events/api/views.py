@@ -43,20 +43,17 @@ class EventViewSet(viewsets.ModelViewSet):
         Update an entire event series or a specific occurrence.
 
         To update a specific occurrence of a recurring event:
-        - Include 'occurrence_date' in the payload
+        - Include 'occurrence_date' in query params
         - The original occurrence will be cancelled
         - A new one-time event will be created with the updates
 
-        Example payload for occurrence update:
+        Example:
+        PUT /api/events/42/?occurrence_date=2023-06-14T09:00:00Z
         {
-            "title": "Updated Title",
-            "occurrence_date": "2023-06-14T09:00:00Z"
+            "title": "Updated Title"
         }
-
-        occurrence_date:
-         "ISO8601 datetime string with timezone (required format: YYYY-MM-DDTHH:MM:SSZ)"
         """
-        occurrence_date = request.data.get("occurrence_date")
+        occurrence_date = request.query_params.get("occurrence_date")
         if occurrence_date:
             return self.handle_occurrence_update(request, *args, **kwargs)
         return super().update(request, *args, **kwargs)
@@ -66,44 +63,42 @@ class EventViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
 
         try:
-            # Parse the occurrence date properly
-            occurrence_date_str = request.data.get("occurrence_date")
+            # Get date from query params instead of body
+            occurrence_date_str = request.query_params.get("occurrence_date")
             if not occurrence_date_str:
                 raise serializers.ValidationError(
-                    {"occurrence_date": "This field is required"},
+                    {"error": "occurrence_date query parameter is required"},
                 )
 
-            # Convert to datetime (handles both naive and aware datetimes)
-            if isinstance(occurrence_date_str, str):
-                occurrence_date = timezone.datetime.fromisoformat(
-                    occurrence_date_str.replace("Z", "+00:00"),
-                )
-            else:
-                occurrence_date = occurrence_date_str
+            # Convert to datetime
+            if "Z" in occurrence_date_str:
+                occurrence_date_str = occurrence_date_str.replace("Z", "+00:00")
+            occurrence_date = timezone.datetime.fromisoformat(occurrence_date_str)
 
-            # Ensure we have a timezone-aware datetime
-            if timezone.is_naive(occurrence_date):
+            if not timezone.is_aware(occurrence_date):
                 occurrence_date = timezone.make_aware(occurrence_date)
 
-            # Verify the occurrence date is valid
+            # Verify date is valid
             if occurrence_date < timezone.now():
                 return Response(
                     {"error": "Cannot modify past events"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Add exception to recurrence
+            # Add exception to recurrence (cancel original)
             instance.exceptions = instance.exceptions or []
-
-            # Store as ISO string to avoid serialization issues
             instance.exceptions.append(occurrence_date.isoformat())
             instance.save()
 
-            # Create new event for the modified occurrence
+            # Create new event with updates
             new_event_data = request.data.copy()
-            new_event_data["is_recurring"] = False
-            new_event_data["start"] = occurrence_date
-            new_event_data["end"] = occurrence_date + (instance.end - instance.start)
+            new_event_data.update(
+                {
+                    "is_recurring": False,
+                    "start": occurrence_date,
+                    "end": occurrence_date + (instance.end - instance.start),
+                },
+            )
 
             serializer = self.get_serializer(data=new_event_data)
             serializer.is_valid(raise_exception=True)

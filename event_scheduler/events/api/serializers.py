@@ -43,7 +43,6 @@ class EventSerializer(serializers.ModelSerializer):
     """
 
     recurrence = serializers.JSONField(required=False, write_only=True)
-    occurrence_date = serializers.DateTimeField(required=False, write_only=True)
 
     class Meta:
         model = Event
@@ -56,7 +55,6 @@ class EventSerializer(serializers.ModelSerializer):
             "is_recurring",
             "recurrence_rule",
             "recurrence",
-            "occurrence_date",
         ]
         read_only_fields = ["id", "recurrence_rule"]
 
@@ -154,5 +152,4 @@ class EventSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Remove temporary fields
         validated_data.pop("recurrence", None)
-        validated_data.pop("occurrence_date", None)
         return super().create(validated_data)
