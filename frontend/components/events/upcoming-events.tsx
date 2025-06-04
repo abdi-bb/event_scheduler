@@ -112,7 +112,14 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
                     throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
                 }
 
-                setEvents((prev) => prev.filter((e) => !(e.id === event.id && e.occurrence_date === event.occurrence_date)))
+                // Only remove the specific occurrence that was deleted
+                setEvents((prev) =>
+                    prev.filter((e) => {
+                        const eOccurrence = e.occurrence_date || e.start
+                        const targetOccurrence = event.occurrence_date || event.start
+                        return !(e.id === event.id && eOccurrence === targetOccurrence)
+                    })
+                )
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to delete occurrence")
             }
