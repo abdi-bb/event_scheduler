@@ -23,8 +23,10 @@ interface EventFormProps {
 
 export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: EventFormProps) {
     const router = useRouter()
-    const [loading, setLoading] = useState(false)
+    const [loadingOccurrence, setLoadingOccurrence] = useState(false)
+    const [loadingSeries, setLoadingSeries] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
     // Calculate the duration of the original event for occurrence editing
     const getEventDuration = () => {
@@ -105,9 +107,60 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
         }
     }, [event])
 
+    // Validation function
+    const validateForm = () => {
+        const errors: Record<string, string> = {}
+
+        // Title validation
+        if (!title.trim()) {
+            errors.title = "Event title is required"
+        }
+
+        // Date/time validation
+        if (!startDate) {
+            errors.startDate = "Start date is required"
+        }
+        if (!startTime) {
+            errors.startTime = "Start time is required"
+        }
+        if (!endDate) {
+            errors.endDate = "End date is required"
+        }
+        if (!endTime) {
+            errors.endTime = "End time is required"
+        }
+
+        // Check if end time is after start time
+        if (startDate && startTime && endDate && endTime) {
+            const startDateTime = new Date(`${startDate}T${startTime}:00`)
+            const endDateTime = new Date(`${endDate}T${endTime}:00`)
+
+            if (endDateTime <= startDateTime) {
+                errors.endTime = "End time must be after start time"
+            }
+        }
+
+        // Recurrence validation for weekly custom
+        if (
+            recurrenceType === "custom" &&
+            customRecurrence.frequency === "weekly" &&
+            (!customRecurrence.days || customRecurrence.days.length === 0)
+        ) {
+            errors.recurrence = "Please select at least one day for weekly recurrence"
+        }
+
+        setValidationErrors(errors)
+        return Object.keys(errors).length === 0
+    }
+
     const handleUpdateOccurrence = async () => {
+        if (!validateForm()) {
+            setError("Please fix the validation errors below")
+            return
+        }
+
         setError(null)
-        setLoading(true)
+        setLoadingOccurrence(true)
 
         try {
             if (!event || !occurrenceDate) {
@@ -118,14 +171,9 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
             const startDateTime = `${startDate}T${startTime}:00Z`
             const endDateTime = `${endDate}T${endTime}:00Z`
 
-            // Validate times
-            if (new Date(endDateTime) <= new Date(startDateTime)) {
-                throw new Error("End time must be after start time")
-            }
-
             const updateData = {
-                title,
-                description,
+                title: title.trim(),
+                description: description.trim(),
                 start: startDateTime,
                 end: endDateTime,
             }
@@ -157,26 +205,26 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
             console.error("Update occurrence error:", err)
             setError(err instanceof Error ? err.message : "Failed to update occurrence")
         } finally {
-            setLoading(false)
+            setLoadingOccurrence(false)
         }
     }
 
     const handleUpdateSeries = async () => {
+        if (!validateForm()) {
+            setError("Please fix the validation errors below")
+            return
+        }
+
         setError(null)
-        setLoading(true)
+        setLoadingSeries(true)
 
         try {
             const startDateTime = `${startDate}T${startTime}:00Z`
             const endDateTime = `${endDate}T${endTime}:00Z`
 
-            // Validate times
-            if (new Date(endDateTime) <= new Date(startDateTime)) {
-                throw new Error("End time must be after start time")
-            }
-
             const eventData: CreateEventRequest = {
-                title,
-                description,
+                title: title.trim(),
+                description: description.trim(),
                 start: startDateTime,
                 end: endDateTime,
                 is_recurring: recurrenceType !== "never",
@@ -226,7 +274,7 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
             console.error("Update series error:", err)
             setError(err instanceof Error ? err.message : "Failed to save event")
         } finally {
-            setLoading(false)
+            setLoadingSeries(false)
         }
     }
 
@@ -264,10 +312,17 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
                         <Input
                             id="title"
                             value={title}
-                            onChange={(e) => setTitle(e.target.value)}
+                            onChange={(e) => {
+                                setTitle(e.target.value)
+                                if (validationErrors.title) {
+                                    setValidationErrors((prev) => ({ ...prev, title: "" }))
+                                }
+                            }}
                             placeholder="Enter event title"
                             required
+                            className={validationErrors.title ? "border-red-500" : ""}
                         />
+                        {validationErrors.title && <p className="text-red-500 text-sm mt-1">{validationErrors.title}</p>}
                     </div>
 
                     <div>
@@ -289,9 +344,16 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
                                 id="start-date"
                                 type="date"
                                 value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
+                                onChange={(e) => {
+                                    setStartDate(e.target.value)
+                                    if (validationErrors.startDate) {
+                                        setValidationErrors((prev) => ({ ...prev, startDate: "" }))
+                                    }
+                                }}
                                 required
+                                className={validationErrors.startDate ? "border-red-500" : ""}
                             />
+                            {validationErrors.startDate && <p className="text-red-500 text-sm mt-1">{validationErrors.startDate}</p>}
                         </div>
                         <div>
                             <Label htmlFor="start-time">Start Time</Label>
@@ -299,20 +361,53 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
                                 id="start-time"
                                 type="time"
                                 value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
+                                onChange={(e) => {
+                                    setStartTime(e.target.value)
+                                    if (validationErrors.startTime) {
+                                        setValidationErrors((prev) => ({ ...prev, startTime: "" }))
+                                    }
+                                }}
                                 required
+                                className={validationErrors.startTime ? "border-red-500" : ""}
                             />
+                            {validationErrors.startTime && <p className="text-red-500 text-sm mt-1">{validationErrors.startTime}</p>}
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <Label htmlFor="end-date">End Date</Label>
-                            <Input id="end-date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+                            <Input
+                                id="end-date"
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => {
+                                    setEndDate(e.target.value)
+                                    if (validationErrors.endDate) {
+                                        setValidationErrors((prev) => ({ ...prev, endDate: "" }))
+                                    }
+                                }}
+                                required
+                                className={validationErrors.endDate ? "border-red-500" : ""}
+                            />
+                            {validationErrors.endDate && <p className="text-red-500 text-sm mt-1">{validationErrors.endDate}</p>}
                         </div>
                         <div>
                             <Label htmlFor="end-time">End Time</Label>
-                            <Input id="end-time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
+                            <Input
+                                id="end-time"
+                                type="time"
+                                value={endTime}
+                                onChange={(e) => {
+                                    setEndTime(e.target.value)
+                                    if (validationErrors.endTime) {
+                                        setValidationErrors((prev) => ({ ...prev, endTime: "" }))
+                                    }
+                                }}
+                                required
+                                className={validationErrors.endTime ? "border-red-500" : ""}
+                            />
+                            {validationErrors.endTime && <p className="text-red-500 text-sm mt-1">{validationErrors.endTime}</p>}
                         </div>
                     </div>
                 </CardContent>
@@ -332,7 +427,15 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
                     )}
                 </CardHeader>
                 <CardContent>
-                    <RadioGroup value={recurrenceType} onValueChange={setRecurrenceType}>
+                    <RadioGroup
+                        value={recurrenceType}
+                        onValueChange={(value) => {
+                            setRecurrenceType(value)
+                            if (validationErrors.recurrence) {
+                                setValidationErrors((prev) => ({ ...prev, recurrence: "" }))
+                            }
+                        }}
+                    >
                         <div className="flex items-center space-x-2">
                             <RadioGroupItem value="never" id="never" />
                             <Label htmlFor="never">Never</Label>
@@ -359,6 +462,8 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
                         </div>
                     </RadioGroup>
 
+                    {validationErrors.recurrence && <p className="text-red-500 text-sm mt-2">{validationErrors.recurrence}</p>}
+
                     {recurrenceType === "custom" && (
                         <Button type="button" variant="outline" className="mt-4" onClick={handleCustomRecurrence}>
                             Configure Custom Recurrence
@@ -374,11 +479,11 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
                     <>
                         <Button
                             type="button"
-                            disabled={loading}
+                            disabled={loadingOccurrence || loadingSeries}
                             className="flex items-center gap-2"
                             onClick={handleUpdateOccurrence}
                         >
-                            {loading ? (
+                            {loadingOccurrence ? (
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                             ) : (
                                 <Save className="h-4 w-4" />
@@ -388,18 +493,27 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
                         <Button
                             type="button"
                             variant="outline"
-                            disabled={loading}
+                            disabled={loadingOccurrence || loadingSeries}
                             className="flex items-center gap-2"
                             onClick={handleUpdateSeries}
                         >
-                            <Save className="h-4 w-4" />
+                            {loadingSeries ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
+                            ) : (
+                                <Save className="h-4 w-4" />
+                            )}
                             Update Entire Series
                         </Button>
                     </>
                 ) : (
                     // Show single button for non-recurring events or new events
-                    <Button type="button" disabled={loading} className="flex items-center gap-2" onClick={handleUpdateSeries}>
-                        {loading ? (
+                    <Button
+                        type="button"
+                        disabled={loadingSeries}
+                        className="flex items-center gap-2"
+                        onClick={handleUpdateSeries}
+                    >
+                        {loadingSeries ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                         ) : (
                             <Save className="h-4 w-4" />
@@ -419,6 +533,9 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
                     onSave={(newRecurrence) => {
                         setCustomRecurrence(newRecurrence)
                         setShowCustomRecurrence(false)
+                        if (validationErrors.recurrence) {
+                            setValidationErrors((prev) => ({ ...prev, recurrence: "" }))
+                        }
                     }}
                     onCancel={() => setShowCustomRecurrence(false)}
                 />
