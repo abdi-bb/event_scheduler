@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 NODE_ENV=development
 DJANGO_HOST=django
-DJANGO_PORT=8000
+DJANGO_PORT=8001
 
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8001
 NEXT_TELEMETRY_DISABLED=1
