@@ -318,51 +318,54 @@ export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: Eve
                 </CardContent>
             </Card>
 
-            {/* Only show recurrence settings when NOT editing a specific occurrence */}
-            {!occurrenceDate && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Repeat className="h-5 w-5" />
-                            Repeat
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <RadioGroup value={recurrenceType} onValueChange={setRecurrenceType}>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="never" id="never" />
-                                <Label htmlFor="never">Never</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="daily" id="daily" />
-                                <Label htmlFor="daily">Every day</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="weekly" id="weekly" />
-                                <Label htmlFor="weekly">Every week</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="monthly" id="monthly" />
-                                <Label htmlFor="monthly">Every month</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="yearly" id="yearly" />
-                                <Label htmlFor="yearly">Every year</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="custom" id="custom" />
-                                <Label htmlFor="custom">Custom</Label>
-                            </div>
-                        </RadioGroup>
+            {/* Always show recurrence settings, but with different messaging */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Repeat className="h-5 w-5" />
+                        Repeat
+                    </CardTitle>
+                    {occurrenceDate && (
+                        <p className="text-sm text-muted-foreground">
+                            Note: Changing recurrence settings will only affect the entire series, not this specific occurrence.
+                        </p>
+                    )}
+                </CardHeader>
+                <CardContent>
+                    <RadioGroup value={recurrenceType} onValueChange={setRecurrenceType}>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="never" id="never" />
+                            <Label htmlFor="never">Never</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="daily" id="daily" />
+                            <Label htmlFor="daily">Every day</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="weekly" id="weekly" />
+                            <Label htmlFor="weekly">Every week</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="monthly" id="monthly" />
+                            <Label htmlFor="monthly">Every month</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="yearly" id="yearly" />
+                            <Label htmlFor="yearly">Every year</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="custom" id="custom" />
+                            <Label htmlFor="custom">Custom</Label>
+                        </div>
+                    </RadioGroup>
 
-                        {recurrenceType === "custom" && (
-                            <Button type="button" variant="outline" className="mt-4" onClick={handleCustomRecurrence}>
-                                Configure Custom Recurrence
-                            </Button>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
+                    {recurrenceType === "custom" && (
+                        <Button type="button" variant="outline" className="mt-4" onClick={handleCustomRecurrence}>
+                            Configure Custom Recurrence
+                        </Button>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* Submit Buttons */}
             <div className="flex gap-4">
