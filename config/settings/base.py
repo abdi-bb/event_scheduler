@@ -375,12 +375,12 @@ ACCOUNT_ADAPTER = "event_scheduler.users.api.views.CustomAccountAdapter"
 from decouple import config  # noqa: E402
 
 # Domain url to be sent during email verification
-DOMAIN_URL = config("DOMAIN_URL", default="http://localhost:8000")
+DOMAIN_URL = config("DOMAIN_URL", default="http://localhost:8001")
 
 # Callbak url for social login
 CALLBACK_URL = config(
     "CALLBACK_URL",
-    default="http://localhost:8000/api/auth/social/google/",
+    default="http://localhost:8001/api/auth/social/google/",
 )
 
 # Optional: Enable custom error response format for API exceptions
@@ -463,19 +463,22 @@ CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
 
 # CSRF Trusted origins(Front-end)
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
     "https://example.com",  # Replace with your production domain
     "https://api.example.com",  # For Django Admin
+    "https://api.xavad.com",
+    "https://event-scheduler.xavad.com",
 ]
 
 # Production CORS settings
 CORS_ALLOWED_ORIGINS = [
     "https://example.com",  # Replace with your production domain
     "https://www.example.com",  # Replace with your production domain
+    "https://event-scheduler.xavad.com",
     # Development origins
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
 ]
 
 # Additional security headers
