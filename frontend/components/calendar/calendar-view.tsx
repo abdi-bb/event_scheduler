@@ -18,7 +18,7 @@ interface CalendarViewProps {
 export function CalendarView({ onEventClick }: CalendarViewProps) {
     const router = useRouter()
     const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-    const [calendarMonth, setCalendarMonth] = useState<Date>(new Date()) // Track calendar month separately
+    const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
     const [events, setEvents] = useState<CalendarEvent[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -143,7 +143,7 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
                                 <CalendarDays className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                                 <p>No events scheduled for this day</p>
                                 <Button asChild className="mt-4" size="sm">
-                                    <Link href={`/events/create?date=${selectedDate.toISOString().split("T")[0]}`}>
+                                    <Link href={`/events/create?date=${format(selectedDate, "yyyy-MM-dd")}`}>
                                         <Plus className="h-4 w-4 mr-2" />
                                         Create Event
                                     </Link>
