@@ -118,11 +118,23 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
                         const eOccurrence = e.occurrence_date || e.start
                         const targetOccurrence = event.occurrence_date || event.start
                         return !(e.id === event.id && eOccurrence === targetOccurrence)
-                    })
+                    }),
                 )
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to delete occurrence")
             }
+        }
+    }
+
+    const handleEditEvent = (event: CalendarEvent, e: React.MouseEvent) => {
+        e.stopPropagation()
+
+        // For recurring events, always pass the event.start as occurrence_date (similar to delete)
+        if (event.is_recurring) {
+            const occurrenceDate = event.occurrence_date || event.start
+            router.push(`/events/${event.id}/edit?occurrence_date=${encodeURIComponent(occurrenceDate)}`)
+        } else {
+            router.push(`/events/${event.id}/edit`)
         }
     }
 
@@ -197,14 +209,7 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
                                     </div>
 
                                     <div className="flex items-center gap-2 ml-4">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                router.push(`/events/${event.id}/edit`)
-                                            }}
-                                        >
+                                        <Button variant="ghost" size="sm" onClick={(e) => handleEditEvent(event, e)}>
                                             <Edit className="h-4 w-4" />
                                         </Button>
 
