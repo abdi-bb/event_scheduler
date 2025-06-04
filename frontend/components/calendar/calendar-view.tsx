@@ -78,10 +78,6 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
         }
     }
 
-    const handleEventClick = (event: CalendarEvent) => {
-        const occurrenceParam = event.occurrence_date ? `?occurrence_date=${event.occurrence_date}` : ""
-        router.push(`/events/${event.id}${occurrenceParam}`)
-    }
 
     const formatTime = (dateString: string) => {
         return format(parseISO(dateString), "HH:mm")
@@ -154,8 +150,7 @@ export function CalendarView({ onEventClick }: CalendarViewProps) {
                                 {selectedDateEvents.map((event) => (
                                     <div
                                         key={`${event.id}-${event.occurrence_date || event.start}`}
-                                        className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                                        onClick={() => handleEventClick(event)}
+                                        className="border rounded-lg p-3 hover:bg-gray-50 transition-colors"
                                     >
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
