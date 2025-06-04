@@ -72,11 +72,6 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
         return `${format(start, "HH:mm")} - ${format(end, "HH:mm")}`
     }
 
-    const handleEventClick = (event: CalendarEvent) => {
-        const occurrenceParam = event.occurrence_date ? `?occurrence_date=${event.occurrence_date}` : ""
-        router.push(`/events/${event.id}${occurrenceParam}`)
-    }
-
     const handleDeleteEntireEvent = async (event: CalendarEvent, e: React.MouseEvent) => {
         e.stopPropagation() // Prevent event click
         if (confirm("Are you sure you want to delete this entire event and all its occurrences?")) {
@@ -165,8 +160,7 @@ export function UpcomingEvents({ onEventClick, onEventEdit, onEventDelete }: Upc
                         {events.map((event) => (
                             <div
                                 key={`${event.id}-${event.occurrence_date || event.start}`}
-                                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                                onClick={() => handleEventClick(event)}
+                                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                             >
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
