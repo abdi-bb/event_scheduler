@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -14,40 +12,90 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Repeat, Save } from "lucide-react"
 import type { Event, CreateEventRequest, RecurrenceParams } from "@/types/event"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, addMinutes, differenceInMinutes } from "date-fns"
 
 interface EventFormProps {
     event?: Event
     initialDate?: string
+    occurrenceDate?: string
     onSuccess?: () => void
 }
 
-export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
+export function EventForm({ event, initialDate, occurrenceDate, onSuccess }: EventFormProps) {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
+    // Calculate the duration of the original event for occurrence editing
+    const getEventDuration = () => {
+        if (event?.start && event?.end) {
+            const start = parseISO(event.start)
+            const end = parseISO(event.end)
+            return differenceInMinutes(end, start)
+        }
+        return 60 // Default 1 hour
+    }
+
+    // Initialize form state properly based on whether we're editing an occurrence
+    const initializeFormData = () => {
+        if (occurrenceDate && event) {
+            // For occurrence editing, use the occurrence date but keep original duration
+            const occStart = parseISO(occurrenceDate)
+            const duration = getEventDuration()
+            const occEnd = addMinutes(occStart, duration)
+
+            return {
+                startDate: format(occStart, "yyyy-MM-dd"),
+                startTime: format(occStart, "HH:mm"),
+                endDate: format(occEnd, "yyyy-MM-dd"),
+                endTime: format(occEnd, "HH:mm"),
+            }
+        } else if (event) {
+            // For regular event editing, use the event's original dates
+            return {
+                startDate: format(parseISO(event.start), "yyyy-MM-dd"),
+                startTime: format(parseISO(event.start), "HH:mm"),
+                endDate: format(parseISO(event.end), "yyyy-MM-dd"),
+                endTime: format(parseISO(event.end), "HH:mm"),
+            }
+        } else {
+            // For new events
+            const defaultDate = initialDate || format(new Date(), "yyyy-MM-dd")
+            return {
+                startDate: defaultDate,
+                startTime: "09:00",
+                endDate: defaultDate,
+                endTime: "10:00",
+            }
+        }
+    }
+
+    const formData = initializeFormData()
+
     // Form state
     const [title, setTitle] = useState(event?.title || "")
     const [description, setDescription] = useState(event?.description || "")
-    const [startDate, setStartDate] = useState(
-        event?.start ? format(parseISO(event.start), "yyyy-MM-dd") : initialDate || format(new Date(), "yyyy-MM-dd"),
-    )
-    const [startTime, setStartTime] = useState(event?.start ? format(parseISO(event.start), "HH:mm") : "09:00")
-    const [endDate, setEndDate] = useState(
-        event?.end ? format(parseISO(event.end), "yyyy-MM-dd") : initialDate || format(new Date(), "yyyy-MM-dd"),
-    )
-    const [endTime, setEndTime] = useState(event?.end ? format(parseISO(event.end), "HH:mm") : "10:00")
+    const [startDate, setStartDate] = useState(formData.startDate)
+    const [startTime, setStartTime] = useState(formData.startTime)
+    const [endDate, setEndDate] = useState(formData.endDate)
+    const [endTime, setEndTime] = useState(formData.endTime)
 
     // Recurrence state
-    const [recurrenceType, setRecurrenceType] = useState<string>(
-        event?.is_recurring ? event.recurrence_params?.frequency || "weekly" : "never",
-    )
+    const [recurrenceType, setRecurrenceType] = useState<string>(() => {
+        if (!event?.is_recurring) return "never"
+        const params = event.recurrence_params
+        if (!params) return "never"
+        if (params.interval === 1 && !params.days && !params.byday && !params.bysetpos) {
+            return params.frequency
+        }
+        return "custom"
+    })
+
     const [showCustomRecurrence, setShowCustomRecurrence] = useState(false)
     const [customRecurrence, setCustomRecurrence] = useState<RecurrenceParams>({
         frequency: "weekly",
         interval: 1,
-        days: [0], // Sunday by default (index 0)
+        days: [0],
     })
 
     // Initialize custom recurrence from existing event
@@ -57,8 +105,63 @@ export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
         }
     }, [event])
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const handleUpdateOccurrence = async () => {
+        setError(null)
+        setLoading(true)
+
+        try {
+            if (!event || !occurrenceDate) {
+                throw new Error("Missing event or occurrence date")
+            }
+
+            // For occurrence updates, we can update title, description, start, and end times
+            const startDateTime = `${startDate}T${startTime}:00Z`
+            const endDateTime = `${endDate}T${endTime}:00Z`
+
+            // Validate times
+            if (new Date(endDateTime) <= new Date(startDateTime)) {
+                throw new Error("End time must be after start time")
+            }
+
+            const updateData = {
+                title,
+                description,
+                start: startDateTime,
+                end: endDateTime,
+            }
+
+            // Use PUT method with occurrence_date as query parameter
+            const url = `${process.env.NEXT_PUBLIC_API_URL}/api/events/${event.id}/?occurrence_date=${encodeURIComponent(occurrenceDate)}`
+
+            console.log("Updating occurrence with URL:", url)
+            console.log("Update data:", updateData)
+
+            const response = await fetch(url, {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updateData),
+            })
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}))
+                console.error("API Error:", errorData)
+                throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
+            }
+
+            onSuccess?.()
+            router.push("/events/upcoming")
+        } catch (err) {
+            console.error("Update occurrence error:", err)
+            setError(err instanceof Error ? err.message : "Failed to update occurrence")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleUpdateSeries = async () => {
         setError(null)
         setLoading(true)
 
@@ -79,7 +182,7 @@ export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
                 is_recurring: recurrenceType !== "never",
             }
 
-            // Add recurrence rules
+            // Add recurrence rules for series updates
             if (recurrenceType !== "never") {
                 if (recurrenceType === "custom") {
                     eventData.recurrence = customRecurrence
@@ -91,11 +194,16 @@ export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
                 }
             }
 
+            // For series updates, use PATCH method without occurrence_date in query params
             const url = event
                 ? `${process.env.NEXT_PUBLIC_API_URL}/api/events/${event.id}/`
                 : `${process.env.NEXT_PUBLIC_API_URL}/api/events/`
 
-            const method = event ? "PUT" : "POST"
+            const method = event ? "PATCH" : "POST"
+
+            console.log("Updating series with URL:", url)
+            console.log("Method:", method)
+            console.log("Event data:", eventData)
 
             const response = await fetch(url, {
                 method,
@@ -108,12 +216,14 @@ export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}))
+                console.error("API Error:", errorData)
                 throw new Error(errorData.error || errorData.detail || `HTTP ${response.status}`)
             }
 
             onSuccess?.()
             router.push("/dashboard")
         } catch (err) {
+            console.error("Update series error:", err)
             setError(err instanceof Error ? err.message : "Failed to save event")
         } finally {
             setLoading(false)
@@ -125,8 +235,20 @@ export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
             {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{error}</div>}
+
+            {/* Show occurrence info */}
+            {event && occurrenceDate && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
+                    <p className="text-sm">
+                        <strong>Editing Occurrence:</strong> {format(parseISO(occurrenceDate), "EEEE, MMMM d, yyyy 'at' HH:mm")}
+                    </p>
+                    <p className="text-xs mt-1">
+                        Updating this occurrence will create a new one-time event and cancel the original occurrence.
+                    </p>
+                </div>
+            )}
 
             {/* Basic Event Details */}
             <Card>
@@ -159,6 +281,7 @@ export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
                         />
                     </div>
 
+                    {/* Show date/time fields for all cases now */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <Label htmlFor="start-date">Start Date</Label>
@@ -195,66 +318,98 @@ export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
                 </CardContent>
             </Card>
 
-            {/* Recurrence Settings */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Repeat className="h-5 w-5" />
-                        Repeat
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <RadioGroup value={recurrenceType} onValueChange={setRecurrenceType}>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="never" id="never" />
-                            <Label htmlFor="never">Never</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="daily" id="daily" />
-                            <Label htmlFor="daily">Every day</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="weekly" id="weekly" />
-                            <Label htmlFor="weekly">Every week</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="monthly" id="monthly" />
-                            <Label htmlFor="monthly">Every month</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="yearly" id="yearly" />
-                            <Label htmlFor="yearly">Every year</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="custom" id="custom" />
-                            <Label htmlFor="custom">Custom</Label>
-                        </div>
-                    </RadioGroup>
+            {/* Only show recurrence settings when NOT editing a specific occurrence */}
+            {!occurrenceDate && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Repeat className="h-5 w-5" />
+                            Repeat
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <RadioGroup value={recurrenceType} onValueChange={setRecurrenceType}>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="never" id="never" />
+                                <Label htmlFor="never">Never</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="daily" id="daily" />
+                                <Label htmlFor="daily">Every day</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="weekly" id="weekly" />
+                                <Label htmlFor="weekly">Every week</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="monthly" id="monthly" />
+                                <Label htmlFor="monthly">Every month</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="yearly" id="yearly" />
+                                <Label htmlFor="yearly">Every year</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="custom" id="custom" />
+                                <Label htmlFor="custom">Custom</Label>
+                            </div>
+                        </RadioGroup>
 
-                    {recurrenceType === "custom" && (
-                        <Button type="button" variant="outline" className="mt-4" onClick={handleCustomRecurrence}>
-                            Configure Custom Recurrence
-                        </Button>
-                    )}
-                </CardContent>
-            </Card>
+                        {recurrenceType === "custom" && (
+                            <Button type="button" variant="outline" className="mt-4" onClick={handleCustomRecurrence}>
+                                Configure Custom Recurrence
+                            </Button>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
-            {/* Submit Button */}
+            {/* Submit Buttons */}
             <div className="flex gap-4">
-                <Button type="submit" disabled={loading} className="flex items-center gap-2">
-                    {loading ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                    ) : (
-                        <Save className="h-4 w-4" />
-                    )}
-                    {event ? "Update Event" : "Create Event"}
-                </Button>
+                {event && event.is_recurring && occurrenceDate ? (
+                    // Show two buttons for recurring events with occurrence date
+                    <>
+                        <Button
+                            type="button"
+                            disabled={loading}
+                            className="flex items-center gap-2"
+                            onClick={handleUpdateOccurrence}
+                        >
+                            {loading ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                            ) : (
+                                <Save className="h-4 w-4" />
+                            )}
+                            Update This Occurrence
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={loading}
+                            className="flex items-center gap-2"
+                            onClick={handleUpdateSeries}
+                        >
+                            <Save className="h-4 w-4" />
+                            Update Entire Series
+                        </Button>
+                    </>
+                ) : (
+                    // Show single button for non-recurring events or new events
+                    <Button type="button" disabled={loading} className="flex items-center gap-2" onClick={handleUpdateSeries}>
+                        {loading ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                        ) : (
+                            <Save className="h-4 w-4" />
+                        )}
+                        {event ? "Update Event" : "Create Event"}
+                    </Button>
+                )}
                 <Button type="button" variant="outline" onClick={() => router.back()}>
                     Cancel
                 </Button>
             </div>
 
-            {/* Custom Recurrence Modal/Dialog would go here */}
+            {/* Custom Recurrence Modal */}
             {showCustomRecurrence && (
                 <CustomRecurrenceDialog
                     recurrence={customRecurrence}
@@ -265,11 +420,11 @@ export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
                     onCancel={() => setShowCustomRecurrence(false)}
                 />
             )}
-        </form>
+        </div>
     )
 }
 
-// Custom Recurrence Dialog Component
+// Custom Recurrence Dialog Component (keeping the same as before)
 interface CustomRecurrenceDialogProps {
     recurrence: RecurrenceParams
     onSave: (recurrence: RecurrenceParams) => void
@@ -284,14 +439,12 @@ function CustomRecurrenceDialog({ recurrence, onSave, onCancel }: CustomRecurren
     const [endDate, setEndDate] = useState("")
     const [count, setCount] = useState(10)
 
-    // Add new state for relative date patterns
     const [monthlyPattern, setMonthlyPattern] = useState<"absolute" | "relative">(
         recurrence.byday && recurrence.bysetpos ? "relative" : "absolute",
     )
     const [bysetpos, setBysetpos] = useState<number>(recurrence.bysetpos || 1)
     const [byday, setByday] = useState<string>(recurrence.byday || "MO")
 
-    // Fixed weekdays array starting with Sunday at index 0
     const weekdays = [
         { value: 0, label: "Sunday" },
         { value: 1, label: "Monday" },
