@@ -47,7 +47,7 @@ export function EventForm({ event, initialDate, onSuccess }: EventFormProps) {
     const [customRecurrence, setCustomRecurrence] = useState<RecurrenceParams>({
         frequency: "weekly",
         interval: 1,
-        days: [1], // Monday by default
+        days: [0], // Sunday by default (index 0)
     })
 
     // Initialize custom recurrence from existing event
@@ -284,6 +284,14 @@ function CustomRecurrenceDialog({ recurrence, onSave, onCancel }: CustomRecurren
     const [endDate, setEndDate] = useState("")
     const [count, setCount] = useState(10)
 
+    // Add new state for relative date patterns
+    const [monthlyPattern, setMonthlyPattern] = useState<"absolute" | "relative">(
+        recurrence.byday && recurrence.bysetpos ? "relative" : "absolute",
+    )
+    const [bysetpos, setBysetpos] = useState<number>(recurrence.bysetpos || 1)
+    const [byday, setByday] = useState<string>(recurrence.byday || "MO")
+
+    // Fixed weekdays array starting with Sunday at index 0
     const weekdays = [
         { value: 0, label: "Sunday" },
         { value: 1, label: "Monday" },
@@ -306,6 +314,11 @@ function CustomRecurrenceDialog({ recurrence, onSave, onCancel }: CustomRecurren
 
         if (frequency === "weekly" && selectedDays.length > 0) {
             newRecurrence.days = selectedDays
+        }
+
+        if (frequency === "monthly" && monthlyPattern === "relative") {
+            newRecurrence.byday = byday
+            newRecurrence.bysetpos = bysetpos
         }
 
         if (endType === "until" && endDate) {
@@ -373,6 +386,59 @@ function CustomRecurrenceDialog({ recurrence, onSave, onCancel }: CustomRecurren
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {frequency === "monthly" && (
+                        <div>
+                            <Label>Monthly Pattern</Label>
+                            <RadioGroup value={monthlyPattern} onValueChange={(v) => setMonthlyPattern(v as "absolute" | "relative")}>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="absolute" id="absolute" />
+                                    <Label htmlFor="absolute">On the same date each month</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="relative" id="relative" />
+                                    <Label htmlFor="relative">On a relative day</Label>
+                                </div>
+                            </RadioGroup>
+
+                            {monthlyPattern === "relative" && (
+                                <div className="mt-2 grid grid-cols-2 gap-2">
+                                    <div>
+                                        <Label>Position</Label>
+                                        <Select value={bysetpos.toString()} onValueChange={(v) => setBysetpos(Number(v))}>
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="1">First</SelectItem>
+                                                <SelectItem value="2">Second</SelectItem>
+                                                <SelectItem value="3">Third</SelectItem>
+                                                <SelectItem value="4">Fourth</SelectItem>
+                                                <SelectItem value="-1">Last</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label>Day</Label>
+                                        <Select value={byday} onValueChange={setByday}>
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="SU">Sunday</SelectItem>
+                                                <SelectItem value="MO">Monday</SelectItem>
+                                                <SelectItem value="TU">Tuesday</SelectItem>
+                                                <SelectItem value="WE">Wednesday</SelectItem>
+                                                <SelectItem value="TH">Thursday</SelectItem>
+                                                <SelectItem value="FR">Friday</SelectItem>
+                                                <SelectItem value="SA">Saturday</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
