@@ -131,11 +131,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Case 1: Verification required - show success page
         router.push(`/auth/signup-success?verification=true`);
       } else {
-        // Case 2: No verification needed - set auth state and redirect to dashboard
-        setUser(data.user);
-        setIsAuthenticated(true);
-        setIsAdmin(data.user.is_staff);
-        router.push(ROUTES.DASHBOARD);
+        // Case 2: No verification needed - set auth state and redirect to login
+        // setUser(data.user);
+        // setIsAuthenticated(true);
+        // setIsAdmin(data.user.is_staff);
+        router.push(ROUTES.LOGIN);
       }
 
       return data.user || null;
