@@ -467,15 +467,12 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
     "https://example.com",  # Replace with your production domain
     "https://api.example.com",  # For Django Admin
-    "https://api.xavad.com",
-    "https://event-scheduler.xavad.com",
 ]
 
 # Production CORS settings
 CORS_ALLOWED_ORIGINS = [
     "https://example.com",  # Replace with your production domain
     "https://www.example.com",  # Replace with your production domain
-    "https://event-scheduler.xavad.com",
     # Development origins
     "http://localhost:3000",
     "http://127.0.0.1:3000",
