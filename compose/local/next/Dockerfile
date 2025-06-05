@@ -44,6 +44,6 @@ RUN chmod +x /start
 COPY . /app/frontend
 
 # Expose port for standalone server
-EXPOSE 3001
+EXPOSE 3000
 
 ENTRYPOINT ["/entrypoint"]
